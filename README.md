@@ -48,11 +48,14 @@ syo-ryo-uma eggplant        # Eggplant cow only
 
 # Animation options
 syo-ryo-uma --reverse       # Animate from left to right (spirits coming home)
+syo-ryo-uma --endless       # Loop animations endlessly (Ctrl+C to stop)
 syo-ryo-uma --stay          # Display static art without animation
 syo-ryo-uma 10              # Set speed (lower = faster, default: 30)
 
 # Combinations
 syo-ryo-uma --reverse cucumber 10   # Fast cucumber returning home
+syo-ryo-uma --endless eggplant      # Endless eggplant loop
+syo-ryo-uma --endless --reverse     # Endless reverse animation
 syo-ryo-uma --stay cucumber          # Static cucumber display
 ```
 
@@ -61,6 +64,7 @@ syo-ryo-uma --stay cucumber          # Static cucumber display
 - 🎭 **Alternate screen buffer** - Keeps your terminal history clean
 - 🏃 **Running animation** - Watch them gallop across your screen
 - 🔄 **Reverse mode** - Spirits can travel in both directions
+- ♾️ **Endless mode** - Loop animations continuously
 - 📍 **Stay mode** - Display static art for contemplation
 - 📦 **Zero dependencies** - Pure Node.js implementation
 - ⚡ **No installation needed** - Run instantly with npx

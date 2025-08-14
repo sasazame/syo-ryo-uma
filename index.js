@@ -164,9 +164,10 @@ function renderFrame(art, xPosition) {
  * @param {number} speed - Animation speed in milliseconds (lower is faster)
  * @param {boolean} keepBuffer - Whether to keep alternate buffer active after animation
  * @param {boolean} reverse - Whether to animate from left to right instead of right to left
+ * @param {boolean} endless - Whether to loop animation endlessly
  * @returns {Promise<void>}
  */
-async function animate(art, speed = CONFIG.DEFAULT_SPEED, keepBuffer = false, reverse = false) {
+async function animate(art, speed = CONFIG.DEFAULT_SPEED, keepBuffer = false, reverse = false, endless = false) {
   const term = getTerminalSize();
   const artWidth = Math.max(...art.map(line => line.length));
   
@@ -176,19 +177,26 @@ async function animate(art, speed = CONFIG.DEFAULT_SPEED, keepBuffer = false, re
     clearScreen();
   }
   
-  if (reverse) {
-    // Start from left edge, move to right edge
-    for (let x = -artWidth; x <= term.width; x += CONFIG.ANIMATION_STEP) {
-      renderFrame(art, x);
-      await new Promise(resolve => setTimeout(resolve, speed));
+  do {
+    if (reverse) {
+      // Start from left edge, move to right edge
+      for (let x = -artWidth; x <= term.width; x += CONFIG.ANIMATION_STEP) {
+        renderFrame(art, x);
+        await new Promise(resolve => setTimeout(resolve, speed));
+      }
+    } else {
+      // Start from right edge, move to left edge
+      for (let x = term.width; x >= -artWidth; x -= CONFIG.ANIMATION_STEP) {
+        renderFrame(art, x);
+        await new Promise(resolve => setTimeout(resolve, speed));
+      }
     }
-  } else {
-    // Start from right edge, move to left edge
-    for (let x = term.width; x >= -artWidth; x -= CONFIG.ANIMATION_STEP) {
-      renderFrame(art, x);
-      await new Promise(resolve => setTimeout(resolve, speed));
+    
+    if (endless) {
+      // Small pause before looping
+      await new Promise(resolve => setTimeout(resolve, speed * CONFIG.PAUSE_MULTIPLIER));
     }
-  }
+  } while (endless);
   
   if (!keepBuffer) {
     showCursor();
@@ -200,9 +208,10 @@ async function animate(art, speed = CONFIG.DEFAULT_SPEED, keepBuffer = false, re
  * Animate both cucumber and eggplant sequentially
  * @param {number} speed - Animation speed in milliseconds
  * @param {boolean} reverse - Whether to animate from left to right instead of right to left
+ * @param {boolean} endless - Whether to loop animations endlessly
  * @returns {Promise<void>}
  */
-async function animateBoth(speed = CONFIG.DEFAULT_SPEED, reverse = false) {
+async function animateBoth(speed = CONFIG.DEFAULT_SPEED, reverse = false, endless = false) {
   // Enter alternate buffer once for both animations
   enterAlternateBuffer();
   hideCursor();
@@ -212,39 +221,45 @@ async function animateBoth(speed = CONFIG.DEFAULT_SPEED, reverse = false) {
   const cucumberArt = reverse ? cucumberReverse : cucumber;
   const eggplantArt = reverse ? eggplantReverse : eggplant;
   
-  // First cucumber
   const term = getTerminalSize();
   const cucumberWidth = Math.max(...cucumberArt.map(line => line.length));
-  
-  if (reverse) {
-    for (let x = -cucumberWidth; x <= term.width; x += CONFIG.ANIMATION_STEP) {
-      renderFrame(cucumberArt, x);
-      await new Promise(resolve => setTimeout(resolve, speed));
-    }
-  } else {
-    for (let x = term.width; x >= -cucumberWidth; x -= CONFIG.ANIMATION_STEP) {
-      renderFrame(cucumberArt, x);
-      await new Promise(resolve => setTimeout(resolve, speed));
-    }
-  }
-  
-  // Small pause - keep the screen clear
-  await new Promise(resolve => setTimeout(resolve, speed * CONFIG.PAUSE_MULTIPLIER));
-  
-  // Then eggplant - no screen clear or buffer switch
   const eggplantWidth = Math.max(...eggplantArt.map(line => line.length));
   
-  if (reverse) {
-    for (let x = -eggplantWidth; x <= term.width; x += CONFIG.ANIMATION_STEP) {
-      renderFrame(eggplantArt, x);
-      await new Promise(resolve => setTimeout(resolve, speed));
+  do {
+    // First cucumber
+    if (reverse) {
+      for (let x = -cucumberWidth; x <= term.width; x += CONFIG.ANIMATION_STEP) {
+        renderFrame(cucumberArt, x);
+        await new Promise(resolve => setTimeout(resolve, speed));
+      }
+    } else {
+      for (let x = term.width; x >= -cucumberWidth; x -= CONFIG.ANIMATION_STEP) {
+        renderFrame(cucumberArt, x);
+        await new Promise(resolve => setTimeout(resolve, speed));
+      }
     }
-  } else {
-    for (let x = term.width; x >= -eggplantWidth; x -= CONFIG.ANIMATION_STEP) {
-      renderFrame(eggplantArt, x);
-      await new Promise(resolve => setTimeout(resolve, speed));
+    
+    // Small pause - keep the screen clear
+    await new Promise(resolve => setTimeout(resolve, speed * CONFIG.PAUSE_MULTIPLIER));
+    
+    // Then eggplant - no screen clear or buffer switch
+    if (reverse) {
+      for (let x = -eggplantWidth; x <= term.width; x += CONFIG.ANIMATION_STEP) {
+        renderFrame(eggplantArt, x);
+        await new Promise(resolve => setTimeout(resolve, speed));
+      }
+    } else {
+      for (let x = term.width; x >= -eggplantWidth; x -= CONFIG.ANIMATION_STEP) {
+        renderFrame(eggplantArt, x);
+        await new Promise(resolve => setTimeout(resolve, speed));
+      }
     }
-  }
+    
+    if (endless) {
+      // Small pause before looping
+      await new Promise(resolve => setTimeout(resolve, speed * CONFIG.PAUSE_MULTIPLIER));
+    }
+  } while (endless);
   
   // Exit alternate buffer once at the end
   showCursor();
@@ -290,6 +305,7 @@ Characters:
 Options:
   --stay      Display the art statically without animation
   --reverse   Animate from left to right instead of right to left
+  --endless   Loop animations endlessly (press Ctrl+C to stop)
   --help      Show this help message
 
 Speed:
@@ -302,6 +318,8 @@ Examples:
   syo-ryo-uma eggplant           # Eggplant animation only
   syo-ryo-uma --reverse          # Both animations moving left to right
   syo-ryo-uma --reverse cucumber # Cucumber moving left to right
+  syo-ryo-uma --endless          # Loop both animations endlessly
+  syo-ryo-uma --endless cucumber # Loop cucumber animation endlessly
   syo-ryo-uma --stay             # Static display of both
   syo-ryo-uma --stay cucumber    # Static display of cucumber
   syo-ryo-uma cucumber 10        # Fast cucumber animation
@@ -322,6 +340,7 @@ async function main() {
   
   const stayMode = args.includes('--stay');
   const reverseMode = args.includes('--reverse');
+  const endlessMode = args.includes('--endless');
   const filteredArgs = args.filter(arg => !arg.startsWith('--'));
   
   // Check if first arg is a number (speed for default mode)
@@ -347,21 +366,21 @@ async function main() {
       renderStatic(reverseMode ? cucumberReverse : cucumber);
     } else {
       const art = reverseMode ? cucumberReverse : cucumber;
-      await animate(art, speed, false, reverseMode);
+      await animate(art, speed, false, reverseMode, endlessMode);
     }
   } else if (character.toLowerCase() === 'eggplant') {
     if (stayMode) {
       renderStatic(reverseMode ? eggplantReverse : eggplant);
     } else {
       const art = reverseMode ? eggplantReverse : eggplant;
-      await animate(art, speed, false, reverseMode);
+      await animate(art, speed, false, reverseMode, endlessMode);
     }
   } else {
     // Default: show both sequentially
     if (stayMode) {
       renderStatic(reverseMode ? [cucumberReverse, eggplantReverse] : [cucumber, eggplant]);
     } else {
-      await animateBoth(speed, reverseMode);
+      await animateBoth(speed, reverseMode, endlessMode);
     }
   }
 }
