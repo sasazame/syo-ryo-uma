@@ -69,6 +69,11 @@ syo-ryo-uma --stay cucumber          # Static cucumber display
 - 📦 **Zero dependencies** - Pure Node.js implementation
 - ⚡ **No installation needed** - Run instantly with npx
 
+## Credits
+
+- **Original Illustration**: [さくっと素材 - 精霊馬のイラスト](https://sakutto-sozai.com/2740/) - The ASCII art is based on this wonderful Shōryō-uma illustration
+- **ASCII Art Conversion**: Created using [ASCII Art Generator](https://www.asciiart.eu/image-to-ascii)
+
 ## License
 
 MIT
