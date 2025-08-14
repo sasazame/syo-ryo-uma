@@ -1,0 +1,31 @@
+{
+  "name": "syo-ryo-uma",
+  "version": "1.0.0",
+  "description": "A joke CLI tool featuring cucumber and eggplant ASCII art running across your terminal",
+  "main": "index.js",
+  "bin": {
+    "syo-ryo-uma": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "art/"
+  ],
+  "scripts": {
+    "test": "node index.js"
+  },
+  "keywords": [
+    "cli",
+    "joke",
+    "ascii",
+    "art",
+    "cucumber",
+    "eggplant",
+    "animation"
+  ],
+  "author": "sasazame",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sasazame/syo-ryo-uma.git"
+  }
+}
